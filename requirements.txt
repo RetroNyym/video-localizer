@@ -1,0 +1,11 @@
+deep-translator>=1.11.4
+pyttsx3>=2.98
+faster-whisper>=1.0.0
+piper-tts>=1.8.0
+kokoro-onnx>=0.4.7
+
+# isteğe bağlı, tamamen çevrimdışı çeviri:
+# argostranslate>=1.9.0
+
+# ekran görüntüsü aracını üretmek için (isteğe bağlı):
+# pillow>=12.0
