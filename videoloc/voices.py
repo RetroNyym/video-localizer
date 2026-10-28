@@ -44,6 +44,76 @@ KOKORO_INFO = {
     "model_card": "https://huggingface.co/hexgrad/Kokoro-82M",
 }
 
+KOKORO_LANGS = {
+    "en-US": "English (US)",
+    "en-GB": "English (UK)",
+    "es": "Español",
+    "fr": "Français",
+    "hi": "हिन्दी",
+    "it": "Italiano",
+    "ja": "日本語",
+    "pt-BR": "Português (BR)",
+    "zh": "中文",
+}
+
+# Kokoro v1.1 konuşmacı listesi: (ses kimliği, ad, dil)
+KOKORO_VOICES: list[tuple[str, str, str]] = [
+    ("af_heart", "Heart", "en-US"),
+    ("af_alloy", "Alloy", "en-US"),
+    ("af_aoede", "Aoede", "en-US"),
+    ("af_bella", "Bella", "en-US"),
+    ("af_jessica", "Jessica", "en-US"),
+    ("af_kore", "Kore", "en-US"),
+    ("af_nicole", "Nicole", "en-US"),
+    ("af_nova", "Nova", "en-US"),
+    ("af_river", "River", "en-US"),
+    ("af_sarah", "Sarah", "en-US"),
+    ("af_sky", "Sky", "en-US"),
+    ("am_adam", "Adam", "en-US"),
+    ("am_echo", "Echo", "en-US"),
+    ("am_eric", "Eric", "en-US"),
+    ("am_fenrir", "Fenrir", "en-US"),
+    ("am_liam", "Liam", "en-US"),
+    ("am_michael", "Michael", "en-US"),
+    ("am_onyx", "Onyx", "en-US"),
+    ("am_puck", "Puck", "en-US"),
+    ("am_santa", "Santa", "en-US"),
+    ("bf_alice", "Alice", "en-GB"),
+    ("bf_emma", "Emma", "en-GB"),
+    ("bf_isabella", "Isabella", "en-GB"),
+    ("bf_lily", "Lily", "en-GB"),
+    ("bm_daniel", "Daniel", "en-GB"),
+    ("bm_fable", "Fable", "en-GB"),
+    ("bm_george", "George", "en-GB"),
+    ("bm_lewis", "Lewis", "en-GB"),
+    ("ef_dora", "Dora", "es"),
+    ("em_alex", "Alex", "es"),
+    ("em_santa", "Santa", "es"),
+    ("ff_siwis", "Siwis", "fr"),
+    ("hf_alpha", "Alpha", "hi"),
+    ("hf_beta", "Beta", "hi"),
+    ("hm_omega", "Omega", "hi"),
+    ("hm_psi", "Psi", "hi"),
+    ("if_sara", "Sara", "it"),
+    ("im_nicola", "Nicola", "it"),
+    ("jf_alpha", "Alpha", "ja"),
+    ("jf_gongitsune", "Gongitsune", "ja"),
+    ("jf_nezumi", "Nezumi", "ja"),
+    ("jf_tebukuro", "Tebukuro", "ja"),
+    ("jm_kumo", "Kumo", "ja"),
+    ("pf_dora", "Dora", "pt-BR"),
+    ("pm_alex", "Alex", "pt-BR"),
+    ("pm_santa", "Santa", "pt-BR"),
+    ("zf_xiaobei", "Xiaobei", "zh"),
+    ("zf_xiaoni", "Xiaoni", "zh"),
+    ("zf_xiaoxiao", "Xiaoxiao", "zh"),
+    ("zf_xiaoyi", "Xiaoyi", "zh"),
+    ("zm_yunjian", "Yunjian", "zh"),
+    ("zm_yunxi", "Yunxi", "zh"),
+    ("zm_yunxia", "Yunxia", "zh"),
+    ("zm_yunyang", "Yunyang", "zh"),
+]
+
 COMMONVOICE_INFO = {
     "id": "commonvoice-tr",
     "name": "Mozilla Common Voice — Türkçe",
@@ -266,6 +336,29 @@ def download_kokoro_models(progress: Callable[[str, int, int], None] | None = No
         _download(url, dst, (lambda n, t, r=name: progress(r, n, t)) if progress else None)
 
 
+def kokoro_catalog(installed_only: bool = False) -> list[VoiceInfo]:
+    _lib_ok, ready = kokoro_installed()
+    if installed_only and not ready:
+        return []
+    out: list[VoiceInfo] = []
+    for vid, name, lang in KOKORO_VOICES:
+        out.append(
+            VoiceInfo(
+                engine="kokoro",
+                id=vid,
+                name=f"Kokoro · {name}",
+                language=lang,
+                language_native=KOKORO_LANGS.get(lang, ""),
+                license=KOKORO_INFO["license"],
+                license_note=KOKORO_INFO["license_note"],
+                source_url=KOKORO_INFO["source"],
+                installed=ready,
+                size_mb=0.0,
+            )
+        )
+    return out
+
+
 def refresh_commonvoice() -> dict:
     try:
         with urllib.request.urlopen(
@@ -293,15 +386,17 @@ def refresh_commonvoice() -> dict:
 
 
 def search_voices(query: str = "", engine: str = "", installed_only: bool = False) -> list[VoiceInfo]:
-    result = piper_catalog(installed_only=installed_only)
+    result: list[VoiceInfo] = []
+    if not engine or engine == "piper":
+        result += piper_catalog(installed_only=installed_only)
     if not engine or engine == "sapi":
-        result = result + sapi_catalog()
+        result += sapi_catalog()
+    if not engine or engine == "kokoro":
+        result += kokoro_catalog(installed_only=installed_only)
     q = query.strip().lower()
     if q:
         result = [
             v for v in result
             if q in v.name.lower() or q in v.language.lower() or q in v.id.lower()
         ]
-    if engine and engine not in ("", "sapi"):
-        result = [v for v in result if v.engine == engine]
     return result

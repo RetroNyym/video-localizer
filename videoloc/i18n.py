@@ -67,7 +67,7 @@ S: dict[str, dict[str, str]] = {
         "badge": "YEREL · ÜCRETSİZ",
         "voice_desc_piper": "Sinirsel ses · ONNX Runtime",
         "voice_desc_sapi": "Windows SAPI · sistem sesi",
-        "voice_desc_kokoro": "Kokoro · ONNX · Türkçe yok",
+        "voice_desc_kokoro": "Kokoro · {n} ses · Türkçe yok",
         "voice_note": (
             "Hızlı, tamamen çevrimdışı. Ses modellerinin ayrı lisansları vardır; "
             "ticari kullanımdan önce inceleyin."
@@ -189,7 +189,7 @@ S: dict[str, dict[str, str]] = {
         "badge": "LOCAL · FREE",
         "voice_desc_piper": "Neural voice · ONNX Runtime",
         "voice_desc_sapi": "Windows SAPI · system voice",
-        "voice_desc_kokoro": "Kokoro · ONNX · no Turkish",
+        "voice_desc_kokoro": "Kokoro · {n} voices · no Turkish",
         "voice_note": "Fast, fully offline. Voice models have separate licenses; review before commercial use.",
         "btn_voice_settings": "Voice settings",
         "btn_listen": "▷  Preview voice",

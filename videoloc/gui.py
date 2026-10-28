@@ -779,9 +779,10 @@ class App:
                 labels.append(info.name.replace("Windows SAPI · ", ""))
                 mapping[labels[-1]] = info.id
         else:
-            labels = ["af_heart", "am_michael", "bf_emma"]
-            for name in labels:
-                mapping[name] = name
+            for info in voices_mod.kokoro_catalog():
+                label = f"{info.name.replace('Kokoro · ', '')} ({info.language})"
+                labels.append(label)
+                mapping[label] = info.id
         self._voice_map = mapping
         self.cb_voice.configure(values=labels)
         current = self.var_voice.get()
@@ -826,7 +827,9 @@ class App:
         if not hasattr(self, "engine_desc"):
             return
         engine = self.var_engine.get() or tts_mod.default_engine()
-        self.engine_desc.configure(text=t(f"voice_desc_{engine}", self.lang))
+        self.engine_desc.configure(
+            text=t(f"voice_desc_{engine}", self.lang, n=len(voices_mod.KOKORO_VOICES))
+        )
         voice_id = self._voice_map.get(self.var_voice.get(), self.var_voice.get())
         self.license_lbl.configure(text=dialogs.voice_license_summary(engine, voice_id, self.lang))
         if hasattr(self, "cb_voice"):
@@ -854,6 +857,9 @@ class App:
                     if lang == "tr"
                     else "Hello, this is a local voice preview."
                 )
+                if engine == "kokoro":
+                    # Kokoro Türkçe konuşmuyor; önizleme her zaman İngilizce.
+                    text = "Hello, this is a local voice preview."
                 tts_mod.preview_sample(out, engine=engine, voice=voice, text=text,
                                        log=lambda m: self.events.put(("log", m, None)))
                 winsound.PlaySound(out, winsound.SND_ASYNC)

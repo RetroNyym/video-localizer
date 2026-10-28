@@ -73,6 +73,12 @@ def _print_voices() -> int:
         f"{'Türkçe desteklenmiyor' if not info['turkish_supported'] else ''}"
     )
     print("  diller: " + ", ".join(info["languages"]))
+    kokoro = voices_mod.kokoro_catalog()
+    print(f"  sesler: {len(kokoro)} adet" + ("" if ready else " (modeller indirilince kullanılabilir)"))
+    for item in kokoro[:8]:
+        print(f"  - {item.id} ({item.language})")
+    if len(kokoro) > 8:
+        print(f"  … +{len(kokoro) - 8} ses")
     print(f"  kaynak: {info['source']}")
     cv = voices_mod.COMMONVOICE_INFO
     print(

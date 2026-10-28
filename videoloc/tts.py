@@ -68,10 +68,10 @@ _KOKORO_CACHE: dict[str, object] = {}
 
 _KOKORO_LANG_BY_PREFIX = {
     "af": "en-us", "am": "en-us", "bf": "en-gb", "bm": "en-gb",
-    "ef": "es", "em": "es", "ff": "fr", "fm": "fr",
+    "ef": "es", "em": "es", "ff": "fr-fr", "fm": "fr-fr",
     "hf": "hi", "hm": "hi", "if": "it", "im": "it",
     "jf": "ja", "jm": "ja", "pf": "pt-br", "pm": "pt-br",
-    "zf": "zh", "zm": "zh",
+    "zf": "cmn", "zm": "cmn",
 }
 
 
@@ -202,6 +202,31 @@ def _piper_run(
         raise TTSError(f"Piper sentezi başarısız: {', '.join(failed[:5])}")
 
 
+class _FloatSpeedSession:
+    """ONNX Runtime oturumu sarmalayıcısı.
+
+    Bazı kokoro-onnx sürümleri `speed` girişini int32 gönderiyor; model ise
+    float32 bekliyor. Sarmalayıcı bu değeri konuşmacı modelinden bağımsız olarak
+    doğru tipe çevirir.
+    """
+
+    def __init__(self, session) -> None:
+        self._session = session
+
+    def __getattr__(self, name):
+        return getattr(self._session, name)
+
+    def run(self, output_names, input_feed, *args, **kwargs):
+        import numpy as np
+
+        feed = dict(input_feed)
+        if "speed" in feed:
+            feed["speed"] = np.asarray(feed["speed"], dtype=np.float32)
+        if "input_ids" in feed:
+            feed["input_ids"] = np.asarray(feed["input_ids"], dtype=np.int64)
+        return self._session.run(output_names, feed, *args, **kwargs)
+
+
 def _kokoro_run(
     pending: list[tuple[int, str, str]],
     total: int,
@@ -229,7 +254,9 @@ def _kokoro_run(
     if "main" not in _KOKORO_CACHE:
         from kokoro_onnx import Kokoro
 
-        _KOKORO_CACHE["main"] = Kokoro(model_path, voices_path)
+        koko = Kokoro(model_path, voices_path)
+        koko.sess = _FloatSpeedSession(koko.sess)
+        _KOKORO_CACHE["main"] = koko
     koko = _KOKORO_CACHE["main"]
     voice_name = voice or "af_heart"
     lang = _KOKORO_LANG_BY_PREFIX.get(voice_name[:2], "en-us")

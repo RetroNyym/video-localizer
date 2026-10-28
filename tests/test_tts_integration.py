@@ -60,6 +60,39 @@ def test_synthesize_with_piper_engine(tmp_path):
         assert wf.getnframes() > 4000
 
 
+def test_synthesize_with_kokoro_engine(tmp_path):
+    from videoloc import voices
+
+    if not tts.kokoro_lib_available():
+        pytest.skip("kokoro-onnx kurulu değil")
+    _lib, ready = voices.kokoro_installed()
+    if not ready:
+        pytest.skip("Kokoro modelleri indirilmemiş")
+    cues = [Cue(index=1, start=0, end=3000, text="Hello, this is the voice library test.")]
+    paths = tts.synthesize_cues(
+        cues, str(tmp_path), engine="kokoro", voice="af_heart", prefix="kokoro"
+    )
+    with wave.open(paths[0], "rb") as wf:
+        assert wf.getframerate() == 24000
+        assert wf.getnframes() > 8000
+
+
+def test_synthesize_kokoro_french_voice(tmp_path):
+    from videoloc import voices
+
+    if not tts.kokoro_lib_available():
+        pytest.skip("kokoro-onnx kurulu değil")
+    _lib, ready = voices.kokoro_installed()
+    if not ready:
+        pytest.skip("Kokoro modelleri indirilmemiş")
+    cues = [Cue(index=1, start=0, end=3000, text="Bonjour, ceci est un test.")]
+    paths = tts.synthesize_cues(
+        cues, str(tmp_path), engine="kokoro", voice="ff_siwis", prefix="kokoro_fr"
+    )
+    with wave.open(paths[0], "rb") as wf:
+        assert wf.getnframes() > 4000
+
+
 def test_default_engine_prefers_piper_when_available():
     expected = "piper" if tts.piper_available() else "sapi"
     assert tts.default_engine() == expected

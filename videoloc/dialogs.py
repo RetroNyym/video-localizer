@@ -128,23 +128,9 @@ class VoicesDialog(Toplevel):
             rows.append((f"piper:{info.id}", info))
         for info in self.app.sapi_voices:
             rows.append((f"sapi:{info.id}", info))
-        lib_ok, ready = voices_mod.kokoro_installed()
-        rows.append(
-            (
-                "kokoro:kokoro",
-                voices_mod.VoiceInfo(
-                    engine="kokoro",
-                    id="kokoro",
-                    name="Kokoro 82M (hexgrad)",
-                    language="en-US, en-GB, ja, es, fr, hi, it, pt-BR, zh",
-                    license=voices_mod.KOKORO_INFO["license"],
-                    license_note=voices_mod.KOKORO_INFO["license_note"],
-                    source_url=voices_mod.KOKORO_INFO["source"],
-                    installed=bool(lib_ok and ready),
-                ),
-            )
-        )
-        cv = voices_mod.refresh_commonvoice() if False else dict(voices_mod.COMMONVOICE_INFO)
+        for info in voices_mod.kokoro_catalog():
+            rows.append((f"kokoro:{info.id}", info))
+        cv = dict(voices_mod.COMMONVOICE_INFO)
         rows.append(
             (
                 "data:commonvoice-tr",

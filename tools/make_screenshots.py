@@ -68,13 +68,23 @@ def grab(win, path: str) -> None:
                     ("r", ctypes.c_long), ("b", ctypes.c_long)]
 
     win.update()
-    time.sleep(0.5)
+    win.lift()
+    try:
+        win.attributes("-topmost", True)
+        win.focus_force()
+    except Exception:
+        pass
+    time.sleep(0.6)
     win.update()
     hwnd = ctypes.windll.user32.GetParent(win.winfo_id())
     rect = RECT()
     ctypes.windll.dwmapi.DwmGetWindowAttribute(hwnd, 9, ctypes.byref(rect), ctypes.sizeof(rect))
     bbox = (rect.l, rect.t, rect.r, min(rect.b, _workarea_bottom()))
     ImageGrab.grab(bbox=bbox).save(path)
+    try:
+        win.attributes("-topmost", False)
+    except Exception:
+        pass
     print("kayıt:", path, bbox)
 
 
@@ -83,7 +93,6 @@ def main() -> None:
 
     from videoloc import i18n
     from videoloc.gui import App, config_path
-    from videoloc.voices import TR_VOICE_KEY
 
     cfg_file = config_path()
     cfg_backup = open(cfg_file, "rb").read() if os.path.exists(cfg_file) else None
@@ -133,14 +142,14 @@ def main() -> None:
     grab(root, os.path.join(SHOTS, "01-main.png"))
 
     dlg = app._open_voices()
+    dlg.search_var.set("kokoro")
+    dlg._load_tree()
     dlg.update()
-    if TR_VOICE_KEY in dlg.tree.get_children() or True:
-        for iid in dlg.tree.get_children():
-            if str(iid) == TR_VOICE_KEY:
-                dlg.tree.selection_set(iid)
-                break
-        else:
-            dlg.tree.selection_set(list(dlg.tree.get_children())[0])
+    rows = list(dlg.tree.get_children())
+    target_row = next((i for i in rows if str(i) == "kokoro:af_heart"), rows[0] if rows else None)
+    if target_row is not None:
+        dlg.tree.selection_set(target_row)
+        dlg.tree.see(target_row)
     dlg._show_detail()
     dlg.geometry("+300+160")
     grab(dlg, os.path.join(SHOTS, "02-voices.png"))

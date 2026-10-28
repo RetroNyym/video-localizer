@@ -13,7 +13,7 @@ transkript edin, çevirin, seslendirin. Her şey makinenizde çalışır; bulut 
 | Konuşmayı yazıya çevirme (faster-whisper, tamamen yerel) | ✓ |
 | SRT çevirisi (Google doğrudan / deep-translator / **çevrimdışı Argos**) | ✓ |
 | Seslendirme motorları: **Piper** (yerel ONNX), **Windows SAPI**, **Kokoro** | ✓ |
-| Ses kütüphanesi (178 Piper sesi / 53 dil, sistem sesleri, indirme) | ✓ |
+| Ses kütüphanesi (178 Piper sesi / 53 dil, **54 Kokoro sesi** / 9 dil, sistem sesleri) | ✓ |
 | Seslendirme videoya gömme (ffmpeg varsa) | ✓ |
 | Toplu dosya işleme (klasör sürükleme, eşzamanlı iş) | ✓ |
 | Çeviri önbelleği (tekrar eden satırlar tekrar çevrilmez) | ✓ |
@@ -96,7 +96,7 @@ python main.py --list-voices
 |---|---|---|---|
 | **Piper** | [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) | Modele göre; **tr_TR-dfki-medium: CC BY-NC-SA 4.0** | Yerel ONNX; TR sesi **ticari kullanıma uygun değil**, atıf zorunlu |
 | **Windows SAPI** | Sistem sesleri | İşletim sistemi lisansı | `pyttsx3` ile, indirme gerektirmez |
-| **Kokoro** | [thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx) | Apache-2.0 | **Türkçe desteklemiyor** (en/ja/es/fr/hi/it/pt/zh) |
+| **Kokoro** | [thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx) | Apache-2.0 | **54 ses / 9 dil** (en-US, en-GB, es, fr, hi, it, ja, pt-BR, zh); **Türkçe yok** |
 | **Common Voice (Türkçe)** | [Mozilla Common Voice](https://commonvoice.mozilla.org/tr) | CC0 / CC-BY (veri seti) | Hazır seslendirme değil, **konuşma veri kümesi** |
 
 > Ses modellerinin lisansları birbirinden farklıdır; ticari kullanımdan önce model
@@ -134,7 +134,7 @@ videoloc/
   cli.py                argparse CLI
 tools/
   make_screenshots.py   Ekran görüntülerini üretir (Pillow)
-tests/                  38 birim/entegrasyon testi
+tests/                  43 birim/entegrasyon testi
 ```
 
 ## Testler
@@ -156,7 +156,8 @@ python tools/make_screenshots.py
 - Google çevirisinde hız sınırı olabilir; uygulama otomatik geri çekilme (retry) yapar.
   Çevrimdışı garanti istiyorsanız `argostranslate` kurup dil paketini indirin.
 - Piper TR sesi (`tr_TR-dfki-medium`, ~63 MB) ilk kullanımda otomatik indirilir;
-  Kokoro modelleri **Ses ayarları** penceresinden indirilir.
+  Kokoro modelleri (~134 MB) **Ses ayarları** penceresinden bir kez indirilir.
 - Kokoro Türkçe desteklemez; Türkçe seslendirme için Piper veya SAPI kullanın.
+  Kokoro'nun 54 sesi 9 dilde çalışır ve ses kütüphanesinde listelenir.
 - Zamanlama asla değiştirilmez; uzun satırlar aynı süre içinde alt satıra bölünür,
   çok uzun altyazılar orantılı olarak iki cue'a ayrılır (toplam süre korunur).

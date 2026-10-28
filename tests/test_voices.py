@@ -66,3 +66,36 @@ def test_search_voices_filters_by_language():
     assert any(v.id == voices.TR_VOICE_KEY for v in hits)
     hits2 = voices.search_voices(query="zzz-none")
     assert hits2 == []
+
+
+def test_kokoro_roster_complete_and_unique():
+    catalog = voices.kokoro_catalog()
+    assert len(catalog) == 54
+    ids = [v.id for v in catalog]
+    assert len(set(ids)) == len(ids)
+    names = {v.name.replace("Kokoro · ", "") for v in catalog}
+    assert {"Heart", "Bella", "Emma", "Dora", "Siwis", "Xiaoxiao"} <= names
+    langs = {v.language for v in catalog}
+    assert langs == set(voices.KOKORO_LANGS)
+    assert "tr_TR" not in langs
+
+
+def test_kokoro_voices_map_to_espeak_language_codes():
+    from videoloc import tts
+
+    for vid, _name, _lang in voices.KOKORO_VOICES:
+        assert vid[:2] in tts._KOKORO_LANG_BY_PREFIX, vid
+    assert tts._KOKORO_LANG_BY_PREFIX["ff"] == "fr-fr"
+    assert tts._KOKORO_LANG_BY_PREFIX["zf"] == "cmn"
+
+
+def test_search_voices_can_filter_kokoro_and_finds_by_name():
+    only_kokoro = voices.search_voices(engine="kokoro")
+    assert len(only_kokoro) == 54
+    assert all(v.engine == "kokoro" for v in only_kokoro)
+    bella = voices.search_voices(query="bella")
+    assert {v.id for v in bella} == {"af_bella", "bf_isabella"}
+    assert voices.search_voices(engine="piper") and all(
+        v.engine == "piper" for v in voices.search_voices(engine="piper")
+    )
+
